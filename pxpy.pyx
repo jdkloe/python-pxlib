@@ -225,6 +225,8 @@ cdef class PXDoc:
         """
         Return the code page of the underlying Paradox table.
         """
+        if self.px_doc.px_head.px_doscodepage == 0:
+            return 'ascii'  # python is being miserable when decoding cp0
         return "cp%d" % self.px_doc.px_head.px_doscodepage
 
     property targetEncoding:
