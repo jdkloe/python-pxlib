@@ -153,6 +153,7 @@ cdef extern from "paradox.h":
     char *PX_read_blobdata(pxblob_t *pxblob, void *data, int len, int *mod, int *blobsize)
     void PX_SdnToGregorian(long int sdn, int *pYear, int *pMonth, int *pDay)
     long int PX_GregorianToSdn(int year, int month, int day)
+    char * PX_timestamp2string(pxdoc_t *pxdoc, double value, const char *format)
 
 cdef void errorhandler(pxdoc_t *p, int type, char *msg, void *data):
     print 'error', type, msg
@@ -613,7 +614,20 @@ cdef class RecordField(ParadoxField):
                 return None
 
         elif self.ftype == pxfTimestamp:
-            pass
+            if PX_get_data_double(self.record.table.doc,
+                                     self.data, self.flen, &value_double)<0:
+                raise Exception("Cannot extract timestamp encoded in double field '%s'" % self.fname)
+            if value_double:
+                return PX_timestamp2string(self.record.table.doc, value_double,
+                                           "Y-m-d H:i:s")
+                #return value_long
+                #/*
+                #return datetime.time(value_long/3600000,
+                #                     value_long/60000%60,
+                #                     value_long%60000/1000.0)
+                #*/
+            else:
+                return None
         elif self.ftype == pxfBCD:
             pass
         elif self.ftype == pxfBytes:
